@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
+import com.apishield.apishield.exception.UserNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,5 +38,15 @@ public class GlobalExceptionHandler {
         error.put("error", exception.getMessage());
 
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleUserNotFoundException(
+            UserNotFoundException exception) {
+
+        Map<String, String> error = new HashMap<>();
+
+        error.put("error", exception.getMessage());
+
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 }
