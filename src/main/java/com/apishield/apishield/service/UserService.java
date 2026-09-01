@@ -3,6 +3,7 @@ import com.apishield.apishield.exception.DuplicateEmailException;
 import com.apishield.apishield.dto.UserRequest;
 import com.apishield.apishield.entity.User;
 import com.apishield.apishield.repository.UserRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.apishield.apishield.dto.UserResponse;
 
@@ -14,11 +15,13 @@ import com.apishield.apishield.exception.UserNotFoundException;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository,PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
-
+//User Creation
     public UserResponse  createUser(UserRequest userRequest) {
 
         if (userRepository.existsByEmail(userRequest.getEmail())) {
@@ -29,7 +32,7 @@ public class UserService {
 
         user.setName(userRequest.getName());
         user.setEmail(userRequest.getEmail());
-        user.setPassword(userRequest.getPassword());
+        user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
 
 
 
@@ -73,7 +76,7 @@ public class UserService {
         }
         user.setName(userRequest.getName());
         user.setEmail(userRequest.getEmail());
-        user.setPassword(userRequest.getPassword());
+        user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
 
         User updatedUser = userRepository.save(user);
 
