@@ -1,5 +1,7 @@
 package com.apishield.apishield.controller;
 
+import com.apishield.apishield.dto.LoginRequest;
+import com.apishield.apishield.dto.LoginResponse;
 import com.apishield.apishield.dto.UserRequest;
 import com.apishield.apishield.entity.User;
 import com.apishield.apishield.service.UserService;
@@ -50,5 +52,10 @@ public class UserController {
         userService.deleteUser(id);
 
         return ResponseEntity.noContent().build();
+    }
+    @PostMapping("/login")
+    public LoginResponse login(@Valid @RequestBody LoginRequest loginRequest) {
+
+        return userService.login(loginRequest);
     }
 }

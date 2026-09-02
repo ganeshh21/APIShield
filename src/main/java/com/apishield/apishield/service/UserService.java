@@ -1,10 +1,14 @@
 package com.apishield.apishield.service;
+import com.apishield.apishield.dto.LoginRequest;
+import com.apishield.apishield.dto.LoginResponse;
 import com.apishield.apishield.exception.DuplicateEmailException;
 import com.apishield.apishield.dto.UserRequest;
 import com.apishield.apishield.entity.User;
+import com.apishield.apishield.exception.InvalidCredentialsException;
 import com.apishield.apishield.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
 import com.apishield.apishield.dto.UserResponse;
 
 
@@ -17,12 +21,13 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository,PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
-//User Creation
-    public UserResponse  createUser(UserRequest userRequest) {
+
+    //User Creation
+    public UserResponse createUser(UserRequest userRequest) {
 
         if (userRepository.existsByEmail(userRequest.getEmail())) {
             throw new DuplicateEmailException("Email already exists");
@@ -35,11 +40,11 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
 
 
-
         User savedUser = userRepository.save(user);
 
         return mapToUserResponse(savedUser);
     }
+
     private UserResponse mapToUserResponse(User user) {
 
         UserResponse response = new UserResponse();
@@ -57,11 +62,12 @@ public class UserService {
                 .map(this::mapToUserResponse)
                 .toList();
     }
-    public UserResponse getUserById(Long id){
-    User user = userRepository.findById(id)
-            .orElseThrow(()->
-                    new UserNotFoundException("User not Found with id :"+id));
-    return mapToUserResponse(user);
+
+    public UserResponse getUserById(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() ->
+                        new UserNotFoundException("User not Found with id :" + id));
+        return mapToUserResponse(user);
     }
 
     /// Update user
@@ -92,5 +98,18 @@ public class UserService {
                 );
 
         userRepository.delete(user);
+    }
+
+    //loginRequestValidation
+    public LoginResponse login(LoginRequest loginRequest) {
+        User user = userRepository.findByEmail(loginRequest.getEmail())
+                .orElseThrow(() ->
+                        new InvalidCredentialsException("Invalid email or password")
+                );
+        if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
+            throw new InvalidCredentialsException("Invalid Credentials");
+        }
+
+        return new LoginResponse("Login Successful");
     }
 }
