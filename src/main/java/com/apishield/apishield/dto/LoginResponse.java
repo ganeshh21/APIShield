@@ -1,5 +1,7 @@
 package com.apishield.apishield.dto;
 
+
+
 public class LoginResponse {
 
     private String token;
@@ -11,4 +13,5 @@ public class LoginResponse {
     public String getToken() {
         return token;
     }
+
 }

@@ -10,7 +10,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import java.util.Collections;
-
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import java.util.List;
 import java.io.IOException;
 
 @Component
@@ -27,7 +28,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain
     ) throws ServletException, IOException {
+
+        System.out.println("JWT Filter is running");
         String authHeader = request.getHeader("Authorization");
+
+        System.out.println("Authorization Header: " + authHeader);
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
@@ -36,12 +41,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             String email = jwtService.extractEmail(token);
+            String role = jwtService.extractRole(token);
+
+            SimpleGrantedAuthority authority =
+                    new SimpleGrantedAuthority("ROLE_" + role);
 
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(
                             email,
                             null,
-                            Collections.emptyList()
+                            List.of(authority)
                     );
 
             SecurityContextHolder.getContext()

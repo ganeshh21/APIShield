@@ -1,6 +1,7 @@
 package com.apishield.apishield.service;
 import com.apishield.apishield.dto.LoginRequest;
 import com.apishield.apishield.dto.LoginResponse;
+import com.apishield.apishield.enums.Role;
 import com.apishield.apishield.exception.DuplicateEmailException;
 import com.apishield.apishield.dto.UserRequest;
 import com.apishield.apishield.entity.User;
@@ -40,6 +41,7 @@ public class UserService {
         user.setName(userRequest.getName());
         user.setEmail(userRequest.getEmail());
         user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
+        user.setRole(Role.USER);
 
 
         User savedUser = userRepository.save(user);
@@ -54,6 +56,8 @@ public class UserService {
         response.setId(user.getId());
         response.setName(user.getName());
         response.setEmail(user.getEmail());
+        response.setRole(user.getRole());
+
 
         return response;
     }
@@ -114,7 +118,7 @@ public class UserService {
 
 
 
-        String token = jwtService.generateToken(user.getEmail());
+        String token = jwtService.generateToken(user.getEmail(),user.getRole().name());
 
         return new LoginResponse(token);
     }

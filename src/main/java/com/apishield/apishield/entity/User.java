@@ -1,9 +1,11 @@
 package com.apishield.apishield.entity;
 
+import com.apishield.apishield.enums.Role;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 @Getter
 @Setter
 @Entity
@@ -20,4 +22,7 @@ public class User {
     private String email;
 
     private String password;
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
 }
