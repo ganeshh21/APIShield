@@ -7,12 +7,13 @@ import com.apishield.apishield.dto.UserRequest;
 import com.apishield.apishield.entity.User;
 import com.apishield.apishield.exception.InvalidCredentialsException;
 import com.apishield.apishield.repository.UserRepository;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import com.apishield.apishield.dto.UserResponse;
 
-
+import org.springframework.security.access.AccessDeniedException;
 import java.util.List;
 import com.apishield.apishield.exception.UserNotFoundException;
 
@@ -70,9 +71,30 @@ public class UserService {
     }
 
     public UserResponse getUserById(Long id) {
+
         User user = userRepository.findById(id)
                 .orElseThrow(() ->
-                        new UserNotFoundException("User not Found with id :" + id));
+                        new UserNotFoundException(
+                                "User not found with id: " + id
+                        )
+                );
+
+        Authentication authentication =
+                SecurityContextHolder.getContext()
+                        .getAuthentication();
+
+        String email = authentication.getName();
+
+        boolean isAdmin = authentication.getAuthorities()
+                .stream()
+                .anyMatch(authority ->
+                        authority.getAuthority().equals("ROLE_ADMIN")
+                );
+
+        if (!isAdmin && !user.getEmail().equals(email)) {
+            throw new AccessDeniedException("You cannot access this user");
+        }
+
         return mapToUserResponse(user);
     }
 
@@ -81,14 +103,41 @@ public class UserService {
 
         User user = userRepository.findById(id)
                 .orElseThrow(() ->
-                        new UserNotFoundException("User not found with id: " + id)
+                        new UserNotFoundException(
+                                "User not found with id: " + id
+                        )
                 );
-        if (userRepository.existsByEmailAndIdNot(userRequest.getEmail(), id)) {
-            throw new DuplicateEmailException("Email already exists");
+
+        Authentication authentication =
+                SecurityContextHolder.getContext()
+                        .getAuthentication();
+
+        String email = authentication.getName();
+
+        boolean isAdmin = authentication.getAuthorities()
+                .stream()
+                .anyMatch(authority ->
+                        authority.getAuthority().equals("ROLE_ADMIN")
+                );
+
+        if (!isAdmin && !user.getEmail().equals(email)) {
+            throw new AccessDeniedException(
+                    "You cannot update this user"
+            );
         }
+
+        if (userRepository.existsByEmailAndIdNot(
+                userRequest.getEmail(), id)) {
+            throw new DuplicateEmailException(
+                    "Email already exists"
+            );
+        }
+
         user.setName(userRequest.getName());
         user.setEmail(userRequest.getEmail());
-        user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
+        user.setPassword(
+                passwordEncoder.encode(userRequest.getPassword())
+        );
 
         User updatedUser = userRepository.save(user);
 
@@ -121,5 +170,23 @@ public class UserService {
         String token = jwtService.generateToken(user.getEmail(),user.getRole().name());
 
         return new LoginResponse(token);
+    }
+    //Current user profile
+    public UserResponse getCurrentUser() {
+
+        Authentication authentication =
+                SecurityContextHolder.getContext()
+                        .getAuthentication();
+
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new UserNotFoundException(
+                                "User not found with email: " + email
+                        )
+                );
+
+        return mapToUserResponse(user);
     }
 }
