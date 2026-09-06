@@ -55,7 +55,10 @@ public class SecurityConfig {
 
                         .requestMatchers(HttpMethod.DELETE, "/api/users/**")
                         .hasRole("ADMIN")
-
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**"
+                        ).permitAll()
                         // Allow Spring error endpoint
                         .requestMatchers("/error").permitAll()
 

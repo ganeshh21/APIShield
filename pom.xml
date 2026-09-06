@@ -86,7 +86,12 @@
 			<version>0.12.6</version>
 			<scope>runtime</scope>
 		</dependency>
-
+<!--		// openAPI swagger-->
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>3.0.2</version>
+		</dependency>
 		<!-- JWT JSON Support -->
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
